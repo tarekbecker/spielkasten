@@ -1,0 +1,4 @@
+const test = require('node:test'); const assert = require('node:assert/strict'); const { Game2048 } = require('./2048.js');
+test('merges a row only once per pair', () => { const game = new Game2048(() => 0); game.board = [[2,2,2,2],[0,0,0,0],[0,0,0,0],[0,0,0,0]]; game.move('left'); assert.deepEqual(game.board[0].slice(0, 2), [4,4]); assert.equal(game.score, 8); });
+test('does not spawn a tile for an unchanged move', () => { const game = new Game2048(() => 0); game.board = [[2,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]; assert.equal(game.move('left'), false); assert.equal(game.emptyCells().length, 15); });
+test('serializes valid state', () => { const game = new Game2048(); const copy = new Game2048(); assert.equal(copy.deserialize(game.serialize()), true); assert.deepEqual(copy.board, game.board); });

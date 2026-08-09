@@ -1,0 +1,4 @@
+const test = require('node:test'); const assert = require('node:assert/strict'); const { DotsAndBoxesGame } = require('./kaesekaestchen.js');
+test('switches players when no box is closed', () => { const game = new DotsAndBoxesGame(3); game.play('h', 0, 0); assert.equal(game.currentPlayer, 'red'); });
+test('closing a box earns an extra turn and point', () => { const game = new DotsAndBoxesGame(3); game.horizontal[0][0]='blue'; game.vertical[0][0]='blue'; game.vertical[0][1]='blue'; game.currentPlayer='blue'; game.play('h', 1, 0); assert.equal(game.boxes[0][0], 'blue'); assert.equal(game.currentPlayer, 'blue'); assert.equal(game.scores().blue, 1); });
+test('ends when every box is owned', () => { const game = new DotsAndBoxesGame(2); game.horizontal[0][0]='blue'; game.vertical[0][0]='blue'; game.vertical[0][1]='blue'; game.currentPlayer='blue'; game.play('h', 1, 0); assert.equal(game.gameOver, true); assert.equal(game.winner, 'blue'); });

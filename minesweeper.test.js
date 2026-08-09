@@ -1,0 +1,4 @@
+const test = require('node:test'); const assert = require('node:assert/strict'); const { MinesweeperGame } = require('./minesweeper.js');
+test('first revealed square is always safe', () => { const game = new MinesweeperGame(3, 3, 1, () => 0); game.reveal(0, 0); assert.equal(game.board[0][0].mine, false); assert.equal(game.gameOver, false); });
+test('revealing empty field spreads to neighbors', () => { const game = new MinesweeperGame(3, 3, 1); game.board.flat().forEach(cell => { cell.mine = false; }); game.board[2][2].mine = true; game.countAdjacent(); game.reveal(0, 0); assert.equal(game.board[0][0].revealed, true); assert.equal(game.board[1][1].revealed, true); });
+test('a flag can be toggled', () => { const game = new MinesweeperGame(); assert.equal(game.toggleFlag(0, 0), true); assert.equal(game.board[0][0].flagged, true); assert.equal(game.toggleFlag(0, 0), true); assert.equal(game.board[0][0].flagged, false); });

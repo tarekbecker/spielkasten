@@ -1,0 +1,15 @@
+services:
+  spielkasten:
+    build: .
+    restart: unless-stopped
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.spielkasten.rule=Host(`${SPIELKASTEN_HOST:?Set SPIELKASTEN_HOST in .env}`)
+      - traefik.http.routers.spielkasten.entrypoints=websecure
+      - traefik.http.routers.spielkasten.tls=true
+      - traefik.http.services.spielkasten.loadbalancer.server.port=80
+networks:
+  traefik:
+    external: true

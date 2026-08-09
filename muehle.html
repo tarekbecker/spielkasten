@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ff6b6b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Mühle - Ein kinderfreundliches Zwei-Spieler-Brettspiel">
+  <title>Mühle - Neun Männer Morris</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: calc(15px + env(safe-area-inset-top)) 15px calc(15px + env(safe-area-inset-bottom));
+      color: #333;
+    }
+
+    h1 {
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 2rem;
+      text-align: center;
+    }
+
+    .back-link {
+      color: white;
+      text-decoration: none;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+    }
+
+    .game-container {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 500px;
+      width: 100%;
+    }
+    .game-settings{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}.game-settings label{font-weight:800}.game-settings select{border:0;border-radius:9px;padding:8px;background:#fff0e6;font:inherit;font-weight:800;color:#b23a28}
+
+    .status-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 15px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 12px;
+    }
+
+    .current-player {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: clamp(0.8rem, 3.6vw, 1.1rem);
+      font-weight: bold;
+      line-height: 1.2;
+      min-width: 0;
+    }
+
+    #status-text {
+      white-space: nowrap;
+    }
+
+    .player-indicator {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 3px solid #333;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .player-indicator.white {
+      background: radial-gradient(circle at 30% 30%, #fff, #e0e0e0);
+    }
+
+    .player-indicator.black {
+      background: radial-gradient(circle at 30% 30%, #555, #222);
+    }
+
+    .phase-indicator {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .board-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+      background: #f8f4e8;
+      border-radius: 12px;
+      padding: 10px;
+      border: 4px solid #8b4513;
+    }
+
+    .board-svg {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      display: block;
+    }
+
+    .board-line {
+      stroke: #8b4513;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .board-point {
+      fill: #8b4513;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .board-point:hover {
+      fill: #a0522d;
+      r: 5;
+    }
+
+    .board-point.selected {
+      fill: #7b61ff;
+      r: 5;
+    }
+
+    .board-point.valid-move {
+      fill: #2ecc71;
+      r: 5;
+      animation: pulse 1s infinite;
+    }
+
+    .board-point.in-mill {
+      fill: #f1c40f;
+    }
+
+    .board-point.removable {
+      fill: #e74c3c;
+      r: 5;
+      animation: shake 0.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { r: 5; opacity: 1; }
+      50% { r: 4; opacity: 0.7; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-1px); }
+      75% { transform: translateX(1px); }
+    }
+
+    .game-piece {
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .game-piece.white {
+      /* Don't reference gradients from a separate, hidden SVG: Safari then
+         falls back to the brown board-point below the stone. */
+      fill: #fffdf5;
+      stroke: #1e3a5f;
+      stroke-width: 1.15;
+    }
+
+    .game-piece.black {
+      fill: #111827;
+      stroke: #fffdf5;
+      stroke-width: 0.85;
+    }
+
+    .game-piece.selected { stroke: #7b61ff; stroke-width: 1.5; }
+    .game-piece.in-mill { stroke: #f1c40f; stroke-width: 1.5; }
+    .game-piece.removable { stroke: #e74c3c; stroke-width: 1.8; animation: shake 0.5s infinite; }
+
+    .stone-counts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .stone-count {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .stone-count h3 {
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    .stone-count .numbers {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .stone-count.white .numbers {
+      color: #333;
+    }
+
+    .stone-count.black .numbers {
+      color: #222;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .version {
+      margin-top: 16px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      color: white;
+    }
+
+    .btn-nav {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      color: white;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .modal.winner-white h2 {
+      color: #3498db;
+    }
+
+    .modal.winner-black h2 {
+      color: #e74c3c;
+    }
+
+    .install-prompt {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      gap: 15px;
+      z-index: 999;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 90%;
+    }
+
+    .install-prompt.show {
+      display: flex;
+    }
+
+    .help-text {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .help-text h3 {
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 1rem;
+    }
+
+    .help-text ul {
+      margin-left: 20px;
+    }
+
+    .help-text li {
+      margin-bottom: 5px;
+    }
+
+    @media (max-width: 500px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .game-container {
+        padding: 15px;
+      }
+      
+      .status-bar {
+        padding: 10px;
+      }
+
+      .current-player {
+        font-size: clamp(0.8rem, 3.6vw, 0.95rem);
+      }
+
+      .phase-indicator {
+        font-size: 0.85rem;
+      }
+
+      button {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Mühle</h1>
+  <a href="index.html" class="back-link">← Zurück zur Spieleauswahl</a>
+  
+  <div class="game-container">
+    <div class="game-settings"><label>Spielart <select id="game-mode"><option value="computer" selected>🤖 Gegen Computer</option><option value="human">👥 Zu zweit</option></select></label><label id="difficulty-control">Computer <select id="difficulty"><option value="child">🧒 Kinder</option><option value="easy">🌱 Einfach</option><option value="medium" selected>🎯 Mittel</option><option value="hard">🔥 Schwer</option></select></label></div>
+    <div class="help-text">
+      <h3>📖 So spielst du:</h3>
+      <ul>
+        <li><strong>Setzphase:</strong> Setze abwechselnd 9 Steine auf die Punkte</li>
+        <li><strong>Zugphase:</strong> Bewege Steine zu benachbarten Punkten</li>
+        <li><strong>Mühle:</strong> 3 Steine in einer Reihe = Gegnerstein entfernen!</li>
+        <li><strong>Fliegen:</strong> Mit nur 3 Steinen kannst du zu jedem Punkt springen</li>
+        <li><strong>Sieg:</strong> Gegner hat weniger als 3 Steine oder kann nicht ziehen</li>
+      </ul>
+    </div>
+
+    <div class="status-bar">
+      <div class="current-player">
+        <div class="player-indicator" id="player-indicator"></div>
+        <span id="status-text">Weiß: Setze einen Stein</span>
+      </div>
+      <div class="phase-indicator" id="phase-text">📍 Setzphase</div>
+    </div>
+
+    <div class="board-container">
+      <div id="board"></div>
+    </div>
+
+    <div class="stone-counts">
+      <div class="stone-count white">
+        <h3>⚪ Weiß</h3>
+        <div class="numbers">Gesetzt: <span id="white-placed">0</span>/9 | Brett: <span id="white-onboard">0</span></div>
+      </div>
+      <div class="stone-count black">
+        <h3>⚫ Schwarz</h3>
+        <div class="numbers">Gesetzt: <span id="black-placed">0</span>/9 | Brett: <span id="black-onboard">0</span></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-primary" onclick="game.restartGame()">🔄 Neues Spiel</button>
+      <button class="btn-nav" onclick="window.location.href='index.html'">🎮 Andere Spiele</button>
+    </div>
+    <p class="version">Mühle · Version 1.4.2 · Build 2026-08-09.9</p>
+  </div>
+
+  <div class="modal" id="game-over-modal">
+    <div class="modal-content">
+      <h2 id="winner-text">Spiel vorbei!</h2>
+      <p id="winner-message"></p>
+      <button class="btn-primary" onclick="game.closeModal()" style="margin-top: 20px;">OK</button>
+    </div>
+  </div>
+
+  <div class="install-prompt" id="install-prompt">
+    <span>📱 Als App installieren</span>
+    <button class="btn-primary" onclick="game.installApp()">Installieren</button>
+    <button class="btn-secondary" onclick="game.dismissInstall()">Später</button>
+  </div>
+
+  <script src="muehle.js?v=1.1.1"></script>
+  <script src="muehle-app.js?v=1.4.2"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed'));
+    }
+  </script>
+</body>
+</html>

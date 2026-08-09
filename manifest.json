@@ -1,0 +1,29 @@
+{
+  "name": "Spielkasten",
+  "short_name": "Spielkasten",
+  "description": "Kinderfreundliche Brettspiele Sammlung mit Dame, Mühle und Schach",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait",
+  "scope": "./",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment", "family"],
+  "screenshots": [
+    {
+      "src": "screenshot.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}

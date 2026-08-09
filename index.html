@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Spielkasten - Kinderfreundliche Spielesammlung">
+  <title>Spielkasten - Kinderfreundliche Spielesammlung</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      color: white;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 1.2rem;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .game-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .game-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    }
+
+    .game-icon {
+      font-size: 4rem;
+      margin-bottom: 15px;
+    }
+
+    .game-card h2 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .game-card.dame h2 {
+      color: #667eea;
+    }
+
+    .game-card.muehle h2 {
+      color: #e74c3c;
+    }
+
+    .game-card.sudoku h2 { color: #0f766e; }
+    .game-card.schiffe h2 { color: #1d4ed8; }
+    .game-card.schach h2 { color: #6b4f36; }
+    .game-card.mastermind h2 { color: #7c3aed; }
+    .game-card.game2048 h2 { color: #c2410c; }
+    .game-card.minesweeper h2 { color: #0e7490; }
+    .game-card.kaesekaestchen h2 { color: #2563eb; }
+    .game-card.memory h2 { color: #be185d; }
+
+    .game-description {
+      color: #666;
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    .game-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: auto;
+    }
+
+    .feature-tag {
+      background: #f0f0f0;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      color: #555;
+    }
+
+    .play-button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .game-card.dame .play-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .game-card.muehle .play-button {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+    .game-card.sudoku .play-button { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); }
+    .game-card.schiffe .play-button { background: linear-gradient(135deg, #1d4ed8 0%, #38bdf8 100%); }
+    .game-card.schach .play-button { background: linear-gradient(135deg, #6b4f36 0%, #a08155 100%); }
+    .game-card.mastermind .play-button { background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%); }
+    .game-card.game2048 .play-button { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
+    .game-card.minesweeper .play-button { background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%); }
+    .game-card.kaesekaestchen .play-button { background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%); }
+    .game-card.memory .play-button { background: linear-gradient(135deg, #be185d 0%, #7c3aed 100%); }
+
+    .play-button:hover {
+      transform: scale(1.05);
+    }
+
+    footer {
+      margin-top: 40px;
+      color: rgba(255,255,255,0.8);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .features-section {
+      background: rgba(255,255,255,0.95);
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 30px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .features-section h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .features-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .feature-item {
+      background: #f0f0f0;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .games-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .game-card {
+        padding: 20px;
+      }
+
+      .game-icon {
+        font-size: 3rem;
+      }
+
+      .game-card h2 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .install-prompt {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      gap: 15px;
+      z-index: 999;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .install-prompt.show {
+      display: flex;
+    }
+
+    .btn-primary {
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-secondary {
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #95a5a6;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎮 Spielkasten</h1>
+    <p class="subtitle">Kinderfreundliche Brettspiele für zwei Spieler</p>
+  </header>
+
+  <div class="games-grid">
+    <a href="dame.html" class="game-card dame">
+      <div class="game-icon">🎲</div>
+      <h2>Deutsches Dame</h2>
+      <p class="game-description">
+        Das klassische Dame-Spiel mit deutschen Regeln. 
+        Schlage gegnerische Steine und werde zur Dame!
+      </p>
+      <div class="game-features">
+        <span class="feature-tag">🎯 Schlagpflicht</span>
+        <span class="feature-tag">👑 Damen</span>
+        <span class="feature-tag">🔄 Mehrfachschlag</span>
+      </div>
+      <button class="play-button">Spielen</button>
+    </a>
+
+    <a href="muehle.html" class="game-card muehle">
+      <div class="game-icon">🎯</div>
+      <h2>Mühle</h2>
+      <p class="game-description">
+        Bilde Mühlen und entferne gegnerische Steine. 
+        Ein strategisches Spiel seit dem Mittelalter!
+      </p>
+      <div class="game-features">
+        <span class="feature-tag">📍 Setzphase</span>
+        <span class="feature-tag">✈️ Fliegen</span>
+        <span class="feature-tag">✂️ Entfernen</span>
+      </div>
+      <button class="play-button">Spielen</button>
+    </a>
+
+    <a href="sudoku.html" class="game-card sudoku">
+      <div class="game-icon">🔢</div>
+      <h2>Sudoku</h2>
+      <p class="game-description">Fülle die Zahlen 1 bis 9 – jedes Rätsel wird direkt auf deinem Gerät erzeugt.</p>
+      <div class="game-features"><span class="feature-tag">🎚️ 4 Stufen</span><span class="feature-tag">🧩 Eindeutig lösbar</span><span class="feature-tag">📴 Offline</span></div>
+      <button class="play-button">Spielen</button>
+    </a>
+
+    <a href="schiffe.html" class="game-card schiffe">
+      <div class="game-icon">🚢</div><h2>Schiffe versenken</h2>
+      <p class="game-description">Stelle deine Flotte geheim auf und versenke die gegnerischen Schiffe.</p>
+      <div class="game-features"><span class="feature-tag">🤫 Geheim aufstellen</span><span class="feature-tag">👥 Zwei Spieler</span><span class="feature-tag">📴 Offline</span></div><button class="play-button">Spielen</button>
+    </a>
+
+    <a href="schach.html" class="game-card schach">
+      <div class="game-icon">♟️</div><h2>Schach</h2>
+      <p class="game-description">Spiel gegen den Computer – mit einfachen bis starken Schwierigkeitsstufen.</p>
+      <div class="game-features"><span class="feature-tag">🤖 Computer</span><span class="feature-tag">🎚️ 4 Stufen</span><span class="feature-tag">📴 Offline</span></div><button class="play-button">Spielen</button>
+    </a>
+
+    <a href="mastermind.html" class="game-card mastermind">
+      <div class="game-icon">🧠</div><h2>Codeknacker</h2>
+      <p class="game-description">Knacke den geheimen Farbcode – mit Logik, Köpfchen und etwas Glück.</p>
+      <div class="game-features"><span class="feature-tag">🌈 6 Farben</span><span class="feature-tag">🔟 10 Versuche</span><span class="feature-tag">📴 Offline</span></div><button class="play-button">Spielen</button>
+    </a>
+
+    <a href="2048.html" class="game-card game2048">
+      <div class="game-icon">🔢</div><h2>2048</h2>
+      <p class="game-description">Schiebe gleiche Zahlen zusammen und knacke die 2048.</p>
+      <div class="game-features"><span class="feature-tag">👤 Solo</span><span class="feature-tag">💾 Bestwert</span><span class="feature-tag">📴 Offline</span></div><button class="play-button">Spielen</button>
+    </a>
+
+    <a href="minesweeper.html" class="game-card minesweeper">
+      <div class="game-icon">💣</div><h2>Minenfeld</h2>
+      <p class="game-description">Räume das Minenfeld – ohne eine Mine zu erwischen.</p>
+      <div class="game-features"><span class="feature-tag">👤 Solo</span><span class="feature-tag">🚩 Flaggen</span><span class="feature-tag">📴 Offline</span></div><button class="play-button">Spielen</button>
+    </a>
+
+    <a href="kaesekaestchen.html" class="game-card kaesekaestchen">
+      <div class="game-icon">🧀</div><h2>Käsekästchen</h2>
+      <p class="game-description">Ziehe Linien, schließe Kästchen und sammle die meisten Punkte.</p>
+      <div class="game-features"><span class="feature-tag">👥 Zwei Spieler</span><span class="feature-tag">➕ Extrazug</span><span class="feature-tag">📴 Offline</span></div><button class="play-button">Spielen</button>
+    </a>
+
+    <a href="memory.html" class="game-card memory">
+      <div class="game-icon">🐾</div><h2>Tier-Memory</h2>
+      <p class="game-description">Finde die passenden Paare mit unseren fröhlichen Tierfreunden.</p>
+      <div class="game-features"><span class="feature-tag">🦊 Eigene Tierbilder</span><span class="feature-tag">🎚️ 3 Größen</span><span class="feature-tag">📴 Offline</span></div><button class="play-button">Spielen</button>
+    </a>
+  </div>
+
+  <div class="features-section">
+    <h3>✨ Features aller Spiele</h3>
+    <div class="features-list">
+      <span class="feature-item">📱 Offline-fähig</span>
+      <span class="feature-item">💾 Autospeicherung</span>
+      <span class="feature-item">👶 Kindgerecht</span>
+      <span class="feature-item">🎨 Bunt &amp; Freundlich</span>
+      <span class="feature-item">⚡ Schnell</span>
+      <span class="feature-item">🔒 Privat</span>
+    </div>
+  </div>
+
+  <footer>
+    <p>Progressive Web App • Zero Dependencies • Made with ❤️</p>
+  </footer>
+
+  <div class="install-prompt" id="install-prompt">
+    <span>📱 Als App installieren</span>
+    <button class="btn-primary" onclick="installApp()">Installieren</button>
+    <button class="btn-secondary" onclick="dismissInstall()">Später</button>
+  </div>
+
+  <script>
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      setTimeout(() => {
+        const prompt = document.getElementById('install-prompt');
+        if (prompt) prompt.classList.add('show');
+      }, 3000);
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      document.getElementById('install-prompt').classList.remove('show');
+    });
+
+    async function installApp() {
+      if (!deferredPrompt) return;
+      
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        deferredPrompt = null;
+        document.getElementById('install-prompt').classList.remove('show');
+      }
+    }
+
+    function dismissInstall() {
+      document.getElementById('install-prompt').classList.remove('show');
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed'));
+    }
+  </script>
+</body>
+</html>

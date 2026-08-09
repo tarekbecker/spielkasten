@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Deutsches Dame - Ein kinderfreundliches Zwei-Spieler-Brettspiel">
+  <title>Deutsches Dame</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
+      color: #333;
+    }
+
+    h1 {
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: 2.5rem;
+    }
+
+    .back-link {
+      color: white;
+      text-decoration: none;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+    }
+
+    .game-container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .current-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    #status-text { white-space: nowrap; }
+
+    .player-indicator {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 3px solid #333;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .player-indicator.white {
+      background: radial-gradient(circle at 30% 30%, #fff, #e0e0e0);
+    }
+
+    .player-indicator.black {
+      background: radial-gradient(circle at 30% 30%, #555, #222);
+    }
+
+    .board-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 1;
+      border: 8px solid #8b4513;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .square {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.2s;
+    }
+
+    .square.light {
+      background-color: #f0d9b5;
+    }
+
+    .square.dark {
+      background-color: #b58863;
+    }
+
+    .square.valid-move::after {
+      content: '';
+      width: 30%;
+      height: 30%;
+      background-color: rgba(0, 255, 0, 0.5);
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    .square.selected {
+      background-color: #7b61ff !important;
+    }
+
+    .square.last-move {
+      box-shadow: inset 0 0 0 4px #ffd700;
+    }
+
+    .piece {
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      border: 3px solid #333;
+      box-shadow: 
+        0 4px 8px rgba(0,0,0,0.3),
+        inset 0 -3px 10px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .piece:hover {
+      transform: scale(1.05);
+    }
+
+    .piece.white {
+      background: radial-gradient(circle at 30% 30%, #fff, #d0d0d0);
+    }
+
+    .piece.black {
+      background: radial-gradient(circle at 30% 30%, #555, #222);
+    }
+
+    .piece.king::after {
+      content: '♔';
+      font-size: 1.5rem;
+      color: gold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .piece.white.king::after {
+      color: #b8860b;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .version {
+      margin-top: 16px;
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    .btn-nav {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      color: white;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal h2 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .modal.winner-white h2 {
+      color: #4a90d9;
+    }
+
+    .modal.winner-black h2 {
+      color: #764ba2;
+    }
+
+    .piece-count {
+      display: flex;
+      gap: 20px;
+      font-size: 0.9rem;
+      color: #666;
+      flex: 0 0 auto;
+    }
+
+    .piece-count span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .game-container {
+        padding: 15px;
+      }
+      
+      .status-bar {
+        font-size: 1rem;
+        padding: 10px;
+        gap: 8px;
+      }
+
+      .player-indicator { width: 24px; height: 24px; border-width: 2px; }
+      .piece-count { gap: 8px; font-size: 0.8rem; }
+    }
+
+    .install-prompt {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      gap: 15px;
+      z-index: 999;
+    }
+
+    .install-prompt.show {
+      display: flex;
+    }
+    .game-settings{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}.game-settings label{font-weight:800}.game-settings select{border:0;border-radius:9px;padding:8px;background:#eef2ff;font:inherit;font-weight:800;color:#3730a3}
+  </style>
+</head>
+<body>
+  <h1>🎲 Deutsches Dame</h1>
+  <a href="index.html" class="back-link">← Zurück zur Spieleauswahl</a>
+  
+  <div class="game-container">
+    <div class="game-settings"><label>Spielart <select id="game-mode"><option value="computer" selected>🤖 Gegen Computer</option><option value="human">👥 Zu zweit</option></select></label><label id="difficulty-control">Computer <select id="difficulty"><option value="child">🧒 Kinder</option><option value="easy">🌱 Einfach</option><option value="medium" selected>🎯 Mittel</option><option value="hard">🔥 Schwer</option></select></label></div>
+    <div class="status-bar">
+      <div class="current-player">
+        <div class="player-indicator" id="player-indicator"></div>
+        <span id="status-text">Weiß ist am Zug</span>
+      </div>
+      <div class="piece-count">
+        <span>⚪ <span id="white-count">12</span></span>
+        <span>⚫ <span id="black-count">12</span></span>
+      </div>
+    </div>
+
+    <div class="board-container">
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-primary" onclick="game.restartGame()">🔄 Neues Spiel</button>
+      <button class="btn-secondary" onclick="game.undoMove()" id="undo-btn">↩️ Rückgängig</button>
+      <button class="btn-nav" onclick="window.location.href='index.html'">🎮 Andere Spiele</button>
+    </div>
+    <p class="version">Dame · Version 1.4.0 · Build 2026-08-09.5</p>
+  </div>
+
+  <div class="modal" id="game-over-modal">
+    <div class="modal-content">
+      <h2 id="winner-text">Spiel vorbei!</h2>
+      <p id="winner-message"></p>
+      <button class="btn-primary" onclick="game.closeModal()" style="margin-top: 20px;">OK</button>
+    </div>
+  </div>
+
+  <div class="install-prompt" id="install-prompt">
+    <span>📱 Als App installieren</span>
+    <button class="btn-primary" onclick="game.installApp()">Installieren</button>
+    <button class="btn-secondary" onclick="game.dismissInstall()">Später</button>
+  </div>
+
+  <script src="game.js?v=1.1.1"></script>
+  <script src="app.js?v=1.2.0"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed'));
+    }
+  </script>
+</body>
+</html>
