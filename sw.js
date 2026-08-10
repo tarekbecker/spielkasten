@@ -44,7 +44,7 @@ const ASSETS = [
   'minesweeper.js?v=1.1.0',
   'minesweeper-app.js?v=1.1.0',
   'kaesekaestchen.js?v=1.0.0',
-  'kaesekaestchen-app.js?v=1.0.0',
+  'kaesekaestchen-app.js?v=1.1.0',
   'memory.js?v=1.0.0',
   'memory-app.js?v=1.1.0',
   'assets/memory-animals.png',
