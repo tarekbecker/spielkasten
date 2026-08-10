@@ -25,6 +25,8 @@ class MastermindUI {
       this.render();
     });
     document.getElementById('new-game').addEventListener('click', () => { this.game.restart(); this.save(); this.show('Neuer Geheimcode – los geht’s!'); this.render(); });
+    document.querySelector('.controls').insertAdjacentHTML('afterbegin', '<button id="clear-current" class="secondary">↩️ Tipp leeren</button>');
+    document.getElementById('clear-current').addEventListener('click', () => { if (!this.game.current.length) return; this.game.current=[]; this.save(); this.render(); this.show('Tipp geleert.'); });
     document.getElementById('attempt-limit').addEventListener('change', event => { this.game.setMaxGuesses(Number(event.target.value)); this.save(); this.show(`Neuer Geheimcode – du hast ${this.game.maxGuesses} Versuche.`); this.render(); });
   }
 
@@ -50,6 +52,7 @@ class MastermindUI {
     const secret = document.getElementById('secret');
     secret.innerHTML = this.game.gameOver ? `<span>Geheimcode:</span><div class="code">${this.dots(this.game.secret)}</div>` : '<span>Geheimcode:</span><div class="code hidden-code"><i></i><i></i><i></i><i></i></div>';
     document.getElementById('submit').disabled = this.game.current.length !== 4 || this.game.gameOver;
+    document.getElementById('clear-current').disabled = !this.game.current.length || this.game.gameOver;
     document.getElementById('submit').textContent = this.game.gameOver ? (this.game.won ? 'Gewonnen! 🎉' : 'Runde vorbei') : 'Tipp prüfen';
     document.getElementById('tries').textContent = `${this.game.guesses.length} / ${this.game.maxGuesses} Versuche`;
     document.getElementById('attempt-limit').value = this.game.maxGuesses;
