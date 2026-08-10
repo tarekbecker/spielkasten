@@ -9,7 +9,7 @@ class MuehleUI {
     this.selectedPoint = null;
     this.validMoves = [];
     this.deferredPrompt = null;
-    this.mode = 'computer'; this.computerPlayer = MUEHLE_PLAYER_BLACK; this.thinking = false;
+    this.mode = 'computer'; this.computerPlayer = MUEHLE_PLAYER_BLACK; this.thinking = false; this.computerMoveVersion = 0;
     
     this.init();
   }
@@ -243,6 +243,7 @@ class MuehleUI {
   }
 
   restartGame() {
+    this.cancelComputerMove();
     this.game.restart();
     this.selectedPoint = null;
     this.validMoves = [];
@@ -252,6 +253,8 @@ class MuehleUI {
     this.closeModal();
     this.maybeComputerMove();
   }
+
+  cancelComputerMove() { this.computerMoveVersion++; this.thinking=false; }
 
   saveGame() {
     try {
@@ -332,7 +335,7 @@ class MuehleUI {
     }
     return choices[Math.floor(Math.random()*choices.length)];
   }
-  maybeComputerMove() { if(this.mode!=='computer'||this.game.gameOver||this.game.currentPlayer!==this.computerPlayer||this.thinking)return;this.thinking=true;this.updateDisplay();setTimeout(()=>{const action=this.chooseComputerAction();this.thinking=false;if(action){this.applyComputerAction(action);this.afterAction();}},430); }
+  maybeComputerMove() { if(this.mode!=='computer'||this.game.gameOver||this.game.currentPlayer!==this.computerPlayer||this.thinking)return;this.thinking=true;this.updateDisplay();const version=this.computerMoveVersion;setTimeout(()=>{if(version!==this.computerMoveVersion||this.mode!=='computer'||this.game.gameOver||this.game.currentPlayer!==this.computerPlayer)return;const action=this.chooseComputerAction();if(version!==this.computerMoveVersion)return;this.thinking=false;if(action){this.applyComputerAction(action);this.afterAction();}},430); }
 
   setupInstallPrompt() {
     window.addEventListener('beforeinstallprompt', (e) => {

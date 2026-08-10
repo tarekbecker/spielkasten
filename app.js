@@ -13,6 +13,7 @@ class DraughtsUI {
     this.mode = 'computer';
     this.computerPlayer = 'black';
     this.thinking = false;
+    this.computerMoveVersion = 0;
     
     this.init();
   }
@@ -207,6 +208,7 @@ class DraughtsUI {
   }
 
   restartGame() {
+    this.cancelComputerMove();
     this.game.restart();
     this.selectedSquare = null;
     this.validMoves = [];
@@ -216,6 +218,13 @@ class DraughtsUI {
     this.saveGame();
     this.closeModal();
     this.maybeComputerMove();
+  }
+
+  cancelComputerMove() {
+    // The move choice is delayed for a more natural game feel. Invalidate an
+    // already queued choice when the game is restarted or its mode changes.
+    this.computerMoveVersion++;
+    this.thinking = false;
   }
 
   undoMove() {
@@ -285,7 +294,14 @@ class DraughtsUI {
   maybeComputerMove() {
     if (this.mode !== 'computer' || this.game.gameOver || this.game.currentPlayer !== this.computerPlayer || this.thinking) return;
     this.thinking = true; this.updateDisplay();
-    setTimeout(() => { const move = this.chooseComputerMove(); this.thinking = false; if (move) this.executeMove(move); }, 420);
+    const version = this.computerMoveVersion;
+    setTimeout(() => {
+      if (version !== this.computerMoveVersion || this.mode !== 'computer' || this.game.gameOver || this.game.currentPlayer !== this.computerPlayer) return;
+      const move = this.chooseComputerMove();
+      if (version !== this.computerMoveVersion) return;
+      this.thinking = false;
+      if (move) this.executeMove(move);
+    }, 420);
   }
 
   setupInstallPrompt() {
