@@ -46,7 +46,7 @@ const ASSETS = [
   'kaesekaestchen.js?v=1.0.0',
   'kaesekaestchen-app.js?v=1.0.0',
   'memory.js?v=1.0.0',
-  'memory-app.js?v=1.0.0',
+  'memory-app.js?v=1.1.0',
   'assets/memory-animals.png',
   'vendor/chess-1.4.0.js',
   'manifest.json',
