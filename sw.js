@@ -3,7 +3,7 @@
  * Caches all assets for offline play
  */
 
-const CACHE_NAME = 'spiele-becker-v52';
+const CACHE_NAME = 'spiele-becker-v53';
 const CHESS_ENGINE_CACHE = 'spiele-becker-chess-engine-v18-lite';
 // A relative base keeps the PWA working both at a custom-domain root and at
 // GitHub Pages' project path (for example /spielkasten/).
@@ -33,7 +33,7 @@ const ASSETS = [
   'muehle.js?v=1.1.1',
   'muehle-app.js?v=1.4.2',
   'sudoku.js?v=1.2.1',
-  'sudoku-app.js?v=1.4.0',
+  'sudoku-app.js?v=1.4.1',
   'schiffe.js?v=1.5.2',
   'schiffe-app.js?v=1.5.3',
   'schach-app.js?v=1.3.2',

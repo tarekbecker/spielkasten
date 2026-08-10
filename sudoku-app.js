@@ -32,12 +32,23 @@ class SudokuUI {
   setFocus(index, value, toggle = false) { if (!value) { this.focusValue=null; this.focusIndex=null; return; } if (toggle && this.focusValue === value) { this.focusValue=null; this.focusIndex=null; } else { this.focusValue=value; this.focusIndex=index; } }
   newGame(difficulty) { this.game.newGame(difficulty); this.selected = null; this.focusValue = null; this.focusIndex = null; this.message('Neues Sudoku – viel Spaß!'); this.render(); this.save(); }
   remember() { this.history.push({ board: this.game.board.slice(), selected: this.selected, focusValue: this.focusValue, focusIndex: this.focusIndex }); if (this.history.length > 80) this.history.shift(); }
-  setValue(index, value) { if (index === null || this.game.puzzle[index] !== 0 || this.game.board[index] === value) return; this.remember(); this.game.setCell(index, value); this.setFocus(index, value); this.render(); this.save(); }
+  numberCount(value) { return this.game.board.filter(cell => cell === value).length; }
+  setValue(index, value) {
+    if (index === null || this.game.puzzle[index] !== 0 || this.game.board[index] === value) return;
+    // A Sudoku contains each digit exactly nine times. Keep keyboard input in
+    // sync with the disabled keypad, so an exhausted digit cannot be added.
+    if (value && this.numberCount(value) >= 9) return;
+    this.remember(); this.game.setCell(index, value); this.setFocus(index, value); this.render(); this.save();
+  }
   undo() { const previous = this.history.pop(); if (!previous) return; this.game.board = previous.board; this.selected = previous.selected; this.focusValue = previous.focusValue; this.focusIndex = previous.focusIndex; this.render(); this.save(); this.message('Letzten Zug zurückgenommen.'); }
   hint() { const index = this.game.board.findIndex((value, i) => value === 0 && this.game.puzzle[i] === 0); if (index === -1) return; this.remember(); const value = this.game.solution[index]; this.game.setCell(index, value); this.selected = index; this.setFocus(index, value); this.render(); this.save(); this.message('Eine passende Zahl ist eingesetzt.'); }
   render() {
     document.getElementById('difficulty').value = this.game.difficulty;
     document.getElementById('undo').disabled = !this.history.length;
+    document.querySelectorAll('#keypad button[data-value]').forEach(button => {
+      const value = Number(button.dataset.value);
+      button.disabled = value > 0 && this.numberCount(value) >= 9;
+    });
     const board = document.getElementById('sudoku-board'); board.innerHTML = '';
     this.game.board.forEach((value, index) => {
       const cell = document.createElement('button');
