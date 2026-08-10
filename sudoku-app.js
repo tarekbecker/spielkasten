@@ -4,6 +4,7 @@ class SudokuUI {
     this.selected = null;
     this.focusValue = null;
     this.focusIndex = null;
+    this.history = [];
     this.load();
     this.bind();
     this.render();
@@ -12,22 +13,31 @@ class SudokuUI {
     document.getElementById('difficulty').addEventListener('change', event => this.newGame(event.target.value));
     document.getElementById('new-game').addEventListener('click', () => this.newGame(document.getElementById('difficulty').value));
     document.getElementById('check').addEventListener('click', () => this.check());
-    document.getElementById('solve').addEventListener('click', () => { this.game.board = this.game.solution.slice(); this.render(); this.save(); this.message('Gelöst! 🥳'); });
+    document.getElementById('solve').addEventListener('click', () => { if (!window.confirm('Wirklich die komplette Lösung zeigen?')) return; this.remember(); this.game.board = this.game.solution.slice(); this.render(); this.save(); this.message('Gelöst! 🥳'); });
+    const controls = document.querySelector('.controls');
+    controls.insertAdjacentHTML('afterbegin', '<button id="undo" class="secondary">↩️ Zurück</button><button id="hint" class="secondary">💡 Hinweis</button>');
+    document.getElementById('undo').addEventListener('click', () => this.undo());
+    document.getElementById('hint').addEventListener('click', () => this.hint());
     document.getElementById('keypad').addEventListener('click', event => {
       const button = event.target.closest('button[data-value]');
       if (!button || this.selected === null) return;
-      const value = Number(button.dataset.value); this.game.setCell(this.selected, value); this.setFocus(this.selected, value); this.render(); this.save();
+      this.setValue(this.selected, Number(button.dataset.value));
     });
     window.addEventListener('keydown', event => {
       if (this.selected === null) return;
-      if (/^[1-9]$/.test(event.key)) { const value=Number(event.key); this.game.setCell(this.selected, value); this.setFocus(this.selected, value); this.render(); this.save(); }
-      if (event.key === 'Backspace' || event.key === 'Delete' || event.key === '0') { this.game.setCell(this.selected, 0); this.setFocus(this.selected, 0); this.render(); this.save(); }
+      if (/^[1-9]$/.test(event.key)) this.setValue(this.selected, Number(event.key));
+      if (event.key === 'Backspace' || event.key === 'Delete' || event.key === '0') this.setValue(this.selected, 0);
     });
   }
   setFocus(index, value, toggle = false) { if (!value) { this.focusValue=null; this.focusIndex=null; return; } if (toggle && this.focusValue === value) { this.focusValue=null; this.focusIndex=null; } else { this.focusValue=value; this.focusIndex=index; } }
   newGame(difficulty) { this.game.newGame(difficulty); this.selected = null; this.focusValue = null; this.focusIndex = null; this.message('Neues Sudoku – viel Spaß!'); this.render(); this.save(); }
+  remember() { this.history.push({ board: this.game.board.slice(), selected: this.selected, focusValue: this.focusValue, focusIndex: this.focusIndex }); if (this.history.length > 80) this.history.shift(); }
+  setValue(index, value) { if (index === null || this.game.puzzle[index] !== 0 || this.game.board[index] === value) return; this.remember(); this.game.setCell(index, value); this.setFocus(index, value); this.render(); this.save(); }
+  undo() { const previous = this.history.pop(); if (!previous) return; this.game.board = previous.board; this.selected = previous.selected; this.focusValue = previous.focusValue; this.focusIndex = previous.focusIndex; this.render(); this.save(); this.message('Letzten Zug zurückgenommen.'); }
+  hint() { const index = this.game.board.findIndex((value, i) => value === 0 && this.game.puzzle[i] === 0); if (index === -1) return; this.remember(); const value = this.game.solution[index]; this.game.setCell(index, value); this.selected = index; this.setFocus(index, value); this.render(); this.save(); this.message('Eine passende Zahl ist eingesetzt.'); }
   render() {
     document.getElementById('difficulty').value = this.game.difficulty;
+    document.getElementById('undo').disabled = !this.history.length;
     const board = document.getElementById('sudoku-board'); board.innerHTML = '';
     this.game.board.forEach((value, index) => {
       const cell = document.createElement('button');
