@@ -18,7 +18,19 @@ class MinesweeperGame {
     });
     this.countAdjacent();
   }
-  reveal(r, c) { if (!this.valid(r, c) || this.gameOver) return false; if (this.firstMove) { this.ensureSafe(r, c); this.firstMove = false; } const cell = this.board[r][c]; if (cell.revealed || cell.flagged) return false; cell.revealed = true; if (cell.mine) { this.gameOver = true; return true; } if (!cell.adjacent) this.neighbors(r, c).forEach(([nr, nc]) => this.reveal(nr, nc)); this.checkWin(); return true; }
+  reveal(r, c) {
+    if (!this.valid(r, c) || this.gameOver) return false;
+    const cell = this.board[r][c];
+    // A flagged or already open field is not a move, so it must not use up
+    // the guaranteed-safe opening reveal.
+    if (cell.revealed || cell.flagged) return false;
+    if (this.firstMove) { this.ensureSafe(r, c); this.firstMove = false; }
+    cell.revealed = true;
+    if (cell.mine) { this.gameOver = true; return true; }
+    if (!cell.adjacent) this.neighbors(r, c).forEach(([nr, nc]) => this.reveal(nr, nc));
+    this.checkWin();
+    return true;
+  }
   toggleFlag(r, c) { const cell = this.valid(r, c) && this.board[r][c]; if (!cell || cell.revealed || this.gameOver) return false; cell.flagged = !cell.flagged; return true; }
   checkWin() { if (this.board.flat().every(cell => cell.mine || cell.revealed)) { this.won = true; this.gameOver = true; } }
   flagCount() { return this.board.flat().filter(cell => cell.flagged).length; }

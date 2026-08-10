@@ -380,6 +380,8 @@ class DraughtsGame {
     return JSON.stringify({
       board: this.board,
       currentPlayer: this.currentPlayer,
+      selectedPiece: this.selectedPiece,
+      capturesInProgress: this.capturesInProgress,
       gameOver: this.gameOver,
       winner: this.winner,
       moveHistory: this.moveHistory
@@ -397,14 +399,29 @@ class DraughtsGame {
 
       if (!validBoard || !validPlayers.includes(state.currentPlayer)) return false;
 
+      const pendingCaptures = state.capturesInProgress === undefined ? [] : state.capturesInProgress;
+      const selectedPiece = state.selectedPiece === undefined ? null : state.selectedPiece;
+      const validCoordinate = position => position && Number.isInteger(position.row) && Number.isInteger(position.col) && this.isValidPosition(position.row, position.col);
+      if (!Array.isArray(pendingCaptures)) return false;
+      if (pendingCaptures.length > 0) {
+        if (state.gameOver || !validCoordinate(selectedPiece)) return false;
+        const selected = state.board[selectedPiece.row][selectedPiece.col];
+        if (!selected || selected.player !== state.currentPlayer) return false;
+        const expectedCaptures = this.getPieceCaptures(selectedPiece.row, selectedPiece.col, state.board);
+        const sameMoves = expectedCaptures.length === pendingCaptures.length && expectedCaptures.every(expected =>
+          pendingCaptures.some(saved => JSON.stringify(saved) === JSON.stringify(expected))
+        );
+        if (!sameMoves) return false;
+      } else if (selectedPiece !== null) return false;
+
       this.board = state.board;
       this.currentPlayer = state.currentPlayer;
       this.gameOver = Boolean(state.gameOver);
       this.winner = state.winner === null || validPlayers.includes(state.winner) ? state.winner : null;
       this.moveHistory = Array.isArray(state.moveHistory) ? state.moveHistory : [];
-      this.selectedPiece = null;
+      this.selectedPiece = selectedPiece ? { ...selectedPiece } : null;
       this.validMoves = [];
-      this.capturesInProgress = [];
+      this.capturesInProgress = pendingCaptures.map(move => ({ ...move, captures: move.captures.map(capture => ({ ...capture })) }));
       this.undoStack = [];
       return true;
     } catch {

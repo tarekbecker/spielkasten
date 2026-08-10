@@ -243,6 +243,9 @@ class DraughtsUI {
         if (!this.game.deserialize(saved)) {
           localStorage.removeItem('draughts-game');
           this.game.restart();
+        } else if (this.game.selectedPiece) {
+          this.selectedSquare = { ...this.game.selectedPiece };
+          this.validMoves = this.game.getValidMoves(this.selectedSquare.row, this.selectedSquare.col);
         }
       }
     } catch (e) {

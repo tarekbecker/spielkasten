@@ -1,5 +1,5 @@
 class BattleshipUI {
-  constructor() { this.game=new BattleshipGame(); this.horizontal=true; this.pendingPlacement=null; this.showingShot=false; this.shotTimer=null; this.choosingStart=false; this.fleetVisible=false; this.load(); this.bind(); this.render(); if(this.game.mode==='computer'&&this.game.phase==='battle'&&this.game.currentPlayer==='black'&&!this.game.handoff)this.runComputer(); }
+  constructor() { this.game=new BattleshipGame(); this.horizontal=true; this.pendingPlacement=null; this.showingShot=false; this.shotTimer=null; this.fleetVisible=false; this.choosingStart=!this.load(); this.bind(); this.render(); if(this.game.mode==='computer'&&this.game.phase==='battle'&&this.game.currentPlayer==='black'&&!this.game.handoff)this.runComputer(); }
   name(player) { return player === 'white' ? 'Weiß' : 'Schwarz'; }
   flag(player) { return player === 'white' ? '🏳️' : '🏴'; }
   opponent(player) { return player === 'white' ? 'black' : 'white'; }
@@ -55,6 +55,7 @@ class BattleshipUI {
   }
   message(text){document.getElementById('message').textContent=text;}
   save(){try{localStorage.setItem('battleship-game',this.game.serialize());}catch(_){}}
-  load(){try{const s=localStorage.getItem('battleship-game');if(s&&!this.game.deserialize(s))localStorage.removeItem('battleship-game');}catch(_){}}
+  load(){try{const s=localStorage.getItem('battleship-game');if(!s)return false;if(!this.game.deserialize(s)){localStorage.removeItem('battleship-game');return false;}return true;}catch(_){return false;}}
 }
-document.addEventListener('DOMContentLoaded',()=>window.battleship=new BattleshipUI());
+if (typeof module !== 'undefined' && module.exports) module.exports = { BattleshipUI };
+if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded',()=>window.battleship=new BattleshipUI());

@@ -25,7 +25,7 @@ class MemoryGame {
   deserialize(value) {
     try {
       const state = JSON.parse(value);
-      if (!MEMORY_SIZES.includes(state.size) || !Array.isArray(state.cards) || state.cards.length !== state.size || !state.cards.every((card, i) => Number.isInteger(card.animal) && card.animal >= 0 && card.animal < MEMORY_ANIMALS && card.id === i && typeof card.matched === 'boolean') || !Array.isArray(state.open) || !state.open.every(i => Number.isInteger(i) && i >= 0 && i < state.size) || state.open.length > 2 || !Number.isInteger(state.moves) || state.moves < 0) return false;
+      if (!MEMORY_SIZES.includes(state.size) || !Array.isArray(state.cards) || state.cards.length !== state.size || !state.cards.every((card, i) => Number.isInteger(card.animal) && card.animal >= 0 && card.animal < MEMORY_ANIMALS && card.id === i && typeof card.matched === 'boolean') || !Array.isArray(state.open) || !state.open.every(i => Number.isInteger(i) && i >= 0 && i < state.size) || new Set(state.open).size !== state.open.length || state.open.some(i => state.cards[i].matched) || (state.open.length === 2 && state.cards[state.open[0]].animal === state.cards[state.open[1]].animal) || state.open.length > 2 || !Number.isInteger(state.moves) || state.moves < 0) return false;
       this.size=state.size; this.cards=state.cards; this.open=state.open; this.moves=state.moves; this.finished=Boolean(state.finished); return true;
     } catch { return false; }
   }

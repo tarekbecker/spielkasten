@@ -279,6 +279,26 @@ describe('DraughtsGame - Serialization', () => {
     const game = new DraughtsGame();
     assert.strictEqual(game.deserialize('{"board":[]}'), false);
   });
+
+  it('restores a forced multiple capture and rejects forged continuations', () => {
+    const game = new DraughtsGame();
+    game.board = Array(8).fill(null).map(() => Array(8).fill(null));
+    game.currentPlayer = PLAYER_WHITE;
+    game.board[5][0] = { player: PLAYER_WHITE, type: PIECE_MAN };
+    game.board[4][1] = { player: PLAYER_BLACK, type: PIECE_MAN };
+    game.board[2][3] = { player: PLAYER_BLACK, type: PIECE_MAN };
+    assert.ok(game.makeMove(game.getValidMoves(5, 0).find(move => move.toRow === 3 && move.toCol === 2)));
+
+    const restored = new DraughtsGame();
+    assert.equal(restored.deserialize(game.serialize()), true);
+    assert.deepEqual(restored.selectedPiece, { row: 3, col: 2 });
+    assert.deepEqual(restored.getValidMoves(3, 2), game.capturesInProgress);
+    assert.equal(restored.makeMove(restored.getValidMoves(3, 2)[0]), true);
+
+    const forged = JSON.parse(game.serialize());
+    forged.capturesInProgress[0].toCol = 0;
+    assert.equal(new DraughtsGame().deserialize(JSON.stringify(forged)), false);
+  });
 });
 
 describe('DraughtsGame - Undo', () => {
