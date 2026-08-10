@@ -4,7 +4,20 @@ class MinesweeperGame {
   valid(r, c) { return r >= 0 && r < this.rows && c >= 0 && c < this.cols; }
   neighbors(r, c) { const cells = []; for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) if ((dr || dc) && this.valid(r + dr, c + dc)) cells.push([r + dr, c + dc]); return cells; }
   countAdjacent() { this.board.forEach((row, r) => row.forEach((cell, c) => { cell.adjacent = this.neighbors(r, c).filter(([nr, nc]) => this.board[nr][nc].mine).length; })); }
-  ensureSafe(r, c) { const cell = this.board[r][c]; if (!cell.mine) return; const safe = this.board.flat().find(item => !item.mine && item !== cell); cell.mine = false; safe.mine = true; this.countAdjacent(); }
+  ensureSafe(r, c) {
+    // The opening move should give children an actual starting area, not just
+    // avoid an immediate mine. Move every mine in the 3×3 area elsewhere.
+    const protectedCells = new Set([this.board[r][c], ...this.neighbors(r, c).map(([nr, nc]) => this.board[nr][nc])]);
+    const minesToMove = [...protectedCells].filter(cell => cell.mine);
+    const safeTargets = this.board.flat().filter(cell => !cell.mine && !protectedCells.has(cell));
+    minesToMove.forEach(mine => {
+      const target = safeTargets.shift() || (mine === this.board[r][c] && this.board.flat().find(cell => !cell.mine && cell !== mine));
+      if (!target) return;
+      mine.mine = false;
+      target.mine = true;
+    });
+    this.countAdjacent();
+  }
   reveal(r, c) { if (!this.valid(r, c) || this.gameOver) return false; if (this.firstMove) { this.ensureSafe(r, c); this.firstMove = false; } const cell = this.board[r][c]; if (cell.revealed || cell.flagged) return false; cell.revealed = true; if (cell.mine) { this.gameOver = true; return true; } if (!cell.adjacent) this.neighbors(r, c).forEach(([nr, nc]) => this.reveal(nr, nc)); this.checkWin(); return true; }
   toggleFlag(r, c) { const cell = this.valid(r, c) && this.board[r][c]; if (!cell || cell.revealed || this.gameOver) return false; cell.flagged = !cell.flagged; return true; }
   checkWin() { if (this.board.flat().every(cell => cell.mine || cell.revealed)) { this.won = true; this.gameOver = true; } }
