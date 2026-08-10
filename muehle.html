@@ -57,6 +57,7 @@
       box-shadow: 0 16px 42px rgba(0,0,0,0.22);
       max-width: 590px;
       width: 100%;
+      min-width: 0;
     }
     .game-settings{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}.game-settings label{font-weight:800}.game-settings select{border:0;border-radius:10px;padding:8px;background:#fff7ed;font:inherit;font-weight:800;color:#9a3412}
 
@@ -116,6 +117,12 @@
       border-radius: 12px;
       padding: 8px;
       border: 3px solid #9a5b2e;
+      overflow: hidden;
+    }
+
+    #board {
+      width: min(100%, 400px);
+      min-width: 0;
     }
 
     .board-svg {
